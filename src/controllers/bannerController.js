@@ -40,32 +40,25 @@ const postBanner = async (req, res, next) => {
 
 const getBanner = async (req, res, next) => {
   try {
-    const { limit = 10, page = 1, ...queryFields } = req.query;
-    console.log(queryFields, "queryFields");
+    const { search, page = 1, limit = 10 } = req.query;
+
+    let query = {};
+    if (search) {
+      query = {
+        $or: [{ title: search }, { status: search }],
+      };
+    }
     const options = {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
     };
     const skip = (options.page - 1) * options.limit;
-
-    let search = {};
-    Object.keys(queryFields).forEach((key) => {
-      if (queryFields[key]) {
-        search[key] = queryFields[key];
-      }
-    });
-
-    const banners = await Banner.find(search).skip(skip).limit(options.limit);
-    if (banners.length === 0) {
-      return res.status(404).json({
-        message: "No banners found",
-        data: [],
-      });
-    }
-
-    res.status(200).json({
+    const banners = await Banner.find(query).skip(skip).limit(options.limit);
+    res.status(statusCode.SUCCESS).json({
       message: "Banners fetched successfully",
       data: banners,
+      page: page,
+      limit: limit,
     });
   } catch (error) {
     next(error);
