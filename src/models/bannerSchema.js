@@ -13,7 +13,6 @@ const bannerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
 });
 
 export const Banner = mongoose.model("banner", bannerSchema);

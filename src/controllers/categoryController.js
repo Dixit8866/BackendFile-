@@ -39,11 +39,32 @@ const postCategory = async (req, res, next) => {
 
 const getCategory = async (req, res, next) => {
   try {
-    const categories = await Category.find();
-    res.status(statusCode.SUCCESS).json({
-      message: "Categories fetched successfully",
-      data: categories,
-    });
+    const { title, limit = 1, page = 1 } = req.query;
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    };
+    const skip = (options.page - 1) * options.limit;
+
+    if (title) {
+      const categories = await Category.find({
+        title: title,
+      });
+      res
+        .status(statusCode.SUCCESS)
+        .json({
+          message: "Categories fetched successfully",
+          data: categories,
+        })
+        .skip(skip)
+        .limit(options.limit);
+    } else {
+      const categories = await Category.find();
+      res.status(statusCode.SUCCESS).json({
+        message: "Categories fetched successfully",
+        data: categories,
+      });
+    }
   } catch (error) {
     next(error);
   }

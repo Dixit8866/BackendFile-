@@ -48,12 +48,32 @@ const postSubCategory = async (req, res, next) => {
 
 const getSubCategory = async (req, res, next) => {
   try {
-    const categories = await SubCategory.find();
-    console.log(categories, "categories");
-    res.status(statusCode.SUCCESS).json({
-      message: "Categories fetched successfully",
-      data: categories,
-    });
+    const { categoryId, limit = 1, page = 1 } = req.query;
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    };
+    const skip = (options.page - 1) * options.limit;
+
+    if (categoryId) {
+      const allsubCategory = await SubCategory.find({
+        Category: categoryId,
+      })
+        .skip(skip)
+        .limit(options.limit);
+      res.status(200).json({
+        message: "Subcategories fetched successfully",
+        data: allsubCategory,
+        limit: limit,
+        page: options.page,
+      });
+    } else {
+      const allsubCategory = await SubCategory.find();
+      res.status(200).json({
+        message: "Subcategories fetched successfully",
+        data: allsubCategory,
+      });
+    }
   } catch (error) {
     next(error);
   }

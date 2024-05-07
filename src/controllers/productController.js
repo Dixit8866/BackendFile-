@@ -86,11 +86,32 @@ const postProduct = async (req, res, next) => {
 
 const getProduct = async (req, res, next) => {
   try {
-    const products = await Product.find();
-    res.status(statusCode.SUCCESS).json({
-      message: "Products fetched successfully",
-      data: products,
-    });
+    const { title, limit = 1, page = 1 } = req.query;
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    };
+    const skip = (options.page - 1) * options.limit;
+
+    if (title) {
+      const products = await Product.find({
+        title: title,
+      });
+      res
+        .status(statusCode.SUCCESS)
+        .json({
+          message: "Products fetched successfully",
+          data: products,
+        })
+        .skip(skip)
+        .limit(options.limit);
+    } else {
+      const products = await Product.find();
+      res.status(statusCode.SUCCESS).json({
+        message: "Products fetched successfully",
+        data: products,
+      });
+    }
   } catch (error) {
     next(error);
   }

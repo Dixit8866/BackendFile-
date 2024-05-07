@@ -1,3 +1,4 @@
+import { query } from "express";
 import BaseError from "../errorHandler/HttpError.js";
 import statusCode from "../errorHandler/statusCode.js";
 import { Banner } from "../models/bannerSchema.js";
@@ -39,11 +40,30 @@ const postBanner = async (req, res, next) => {
 
 const getBanner = async (req, res, next) => {
   try {
-    const banners = await Banner.find();
-    res.status(statusCode.SUCCESS).json({
-      message: "Banners fetched successfully",
-      data: banners,
-    });
+    const { title, limit = 1, page = 1 } = req.query;
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    };
+    const skip = (options.page - 1) * options.limit;
+
+    if (title) {
+      const banners = await Banner.find({ title: title });
+      res
+        .status(statusCode.SUCCESS)
+        .json({
+          message: "Banners fetched successfully",
+          data: banners,
+        })
+        .skip(skip)
+        .limit(options.limit);
+    } else {
+      const banners = await Banner.find();
+      res.status(statusCode.SUCCESS).json({
+        message: "Banners fetched successfully",
+        data: banners,
+      });
+    }
   } catch (error) {
     next(error);
   }
